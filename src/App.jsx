@@ -1,3 +1,4 @@
+import Admin from './Admin'
 import { useState } from 'react'
 import './App.css'
 
@@ -7,8 +8,13 @@ function App() {
   const [desiredGroup, setDesiredGroup] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  if (window.location.pathname === '/admin') {
+    return <Admin />
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     setError('')
@@ -34,15 +40,42 @@ function App() {
       return
     }
 
-    setSuccess(true)
+    setLoading(true)
 
-    setFullName('')
-    setCurrentGroup('')
-    setDesiredGroup('')
+    try {
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          currentGroup,
+          desiredGroup,
+        }),
+      })
 
-    setTimeout(() => {
-      setSuccess(false)
-    }, 4000)
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.message || 'Failed to submit swap request.')
+        return
+      }
+
+      setSuccess(true)
+
+      setFullName('')
+      setCurrentGroup('')
+      setDesiredGroup('')
+
+      setTimeout(() => {
+        setSuccess(false)
+      }, 4000)
+    } catch {
+      setError('Unable to connect to the server. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -71,6 +104,7 @@ function App() {
                 setError('')
               }}
               placeholder="Enter your full name"
+              disabled={loading}
             />
           </div>
 
@@ -83,22 +117,33 @@ function App() {
               id="currentGroup"
               value={currentGroup}
               onChange={(e) => {
-                setCurrentGroup(e.target.value)
+                const value = e.target.value
 
-                if (e.target.value === desiredGroup) {
+                setCurrentGroup(value)
+
+                if (value === desiredGroup) {
                   setDesiredGroup('')
                 }
 
                 setError('')
               }}
+              disabled={loading}
             >
               <option value="">
                 Select your current group
               </option>
 
-              <option value="G1">Group 1</option>
-              <option value="G2">Group 2</option>
-              <option value="G3">Group 3</option>
+              <option value="G1">
+                Group 1
+              </option>
+
+              <option value="G2">
+                Group 2
+              </option>
+
+              <option value="G3">
+                Group 3
+              </option>
             </select>
           </div>
 
@@ -114,6 +159,7 @@ function App() {
                 setDesiredGroup(e.target.value)
                 setError('')
               }}
+              disabled={loading}
             >
               <option value="">
                 Select your desired group
@@ -144,16 +190,22 @@ function App() {
 
           {error && (
             <div className="error-message">
-              <span className="error-icon">!</span>
-              <span>{error}</span>
+              <span className="error-icon">
+                !
+              </span>
+
+              <span>
+                {error}
+              </span>
             </div>
           )}
 
           <button
             type="submit"
             className="submit-button"
+            disabled={loading}
           >
-            Submit Swap Request
+            {loading ? 'Submitting...' : 'Submit Swap Request'}
           </button>
         </form>
       </div>
@@ -165,7 +217,9 @@ function App() {
           </div>
 
           <div className="success-content">
-            <strong>Request submitted</strong>
+            <strong>
+              Request submitted
+            </strong>
 
             <span>
               Your swap request has been recorded successfully.
