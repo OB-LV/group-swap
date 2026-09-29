@@ -1,110 +1,187 @@
 import { useState } from 'react'
+import './App.css'
 
 function App() {
   const [fullName, setFullName] = useState('')
   const [currentGroup, setCurrentGroup] = useState('')
   const [desiredGroup, setDesiredGroup] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    console.log({
-      fullName,
-      currentGroup,
-      desiredGroup,
-    })
+    setError('')
+    setSuccess(false)
+
+    if (!fullName.trim()) {
+      setError('Please enter your full name.')
+      return
+    }
+
+    if (!currentGroup) {
+      setError('Please select your current group.')
+      return
+    }
+
+    if (!desiredGroup) {
+      setError('Please select the group you want to swap to.')
+      return
+    }
+
+    if (currentGroup === desiredGroup) {
+      setError('You cannot swap to your current group.')
+      return
+    }
+
+    setSuccess(true)
+
+    setFullName('')
+    setCurrentGroup('')
+    setDesiredGroup('')
+
+    setTimeout(() => {
+      setSuccess(false)
+    }, 4000)
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 px-4 py-12">
-      <div className="mx-auto max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Group Swap
-          </h1>
+    <main className="app">
+      <div className="container">
+        <header className="header">
+          <h1 className="title">Group Swap</h1>
 
-          <p className="mt-2 text-gray-500">
+          <p className="subtitle">
             Submit your group swap request
           </p>
-        </div>
+        </header>
 
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl bg-white p-6 shadow-sm"
-        >
-          <div className="space-y-5">
-            <div>
-              <label
-                htmlFor="fullName"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Full Name
-              </label>
+        <form className="form" onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="fullName">
+              Full Name
+            </label>
 
-              <input
-                id="fullName"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter your full name"
-                required
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="currentGroup"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Current Group
-              </label>
-
-              <select
-                id="currentGroup"
-                value={currentGroup}
-                onChange={(e) => setCurrentGroup(e.target.value)}
-                required
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
-              >
-                <option value="">Select your current group</option>
-                <option value="G1">Group 1</option>
-                <option value="G2">Group 2</option>
-                <option value="G3">Group 3</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="desiredGroup"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Desired Group
-              </label>
-
-              <select
-                id="desiredGroup"
-                value={desiredGroup}
-                onChange={(e) => setDesiredGroup(e.target.value)}
-                required
-                className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-gray-900"
-              >
-                <option value="">Select your desired group</option>
-                <option value="G1">Group 1</option>
-                <option value="G2">Group 2</option>
-                <option value="G3">Group 3</option>
-              </select>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-gray-900 px-4 py-3 font-medium text-white transition hover:bg-gray-800"
-            >
-              Submit Request
-            </button>
+            <input
+              id="fullName"
+              type="text"
+              value={fullName}
+              onChange={(e) => {
+                setFullName(e.target.value)
+                setError('')
+              }}
+              placeholder="Enter your full name"
+            />
           </div>
+
+          <div className="field">
+            <label htmlFor="currentGroup">
+              Current Group
+            </label>
+
+            <select
+              id="currentGroup"
+              value={currentGroup}
+              onChange={(e) => {
+                setCurrentGroup(e.target.value)
+
+                if (e.target.value === desiredGroup) {
+                  setDesiredGroup('')
+                }
+
+                setError('')
+              }}
+            >
+              <option value="">
+                Select your current group
+              </option>
+
+              <option value="G1">Group 1</option>
+              <option value="G2">Group 2</option>
+              <option value="G3">Group 3</option>
+            </select>
+          </div>
+
+          <div className="field">
+            <label htmlFor="desiredGroup">
+              Desired Group
+            </label>
+
+            <select
+              id="desiredGroup"
+              value={desiredGroup}
+              onChange={(e) => {
+                setDesiredGroup(e.target.value)
+                setError('')
+              }}
+            >
+              <option value="">
+                Select your desired group
+              </option>
+
+              <option
+                value="G1"
+                disabled={currentGroup === 'G1'}
+              >
+                Group 1
+              </option>
+
+              <option
+                value="G2"
+                disabled={currentGroup === 'G2'}
+              >
+                Group 2
+              </option>
+
+              <option
+                value="G3"
+                disabled={currentGroup === 'G3'}
+              >
+                Group 3
+              </option>
+            </select>
+          </div>
+
+          {error && (
+            <div className="error-message">
+              <span className="error-icon">!</span>
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="submit-button"
+          >
+            Submit Swap Request
+          </button>
         </form>
       </div>
+
+      {success && (
+        <div className="success-toast">
+          <div className="success-icon">
+            ✓
+          </div>
+
+          <div className="success-content">
+            <strong>Request submitted</strong>
+
+            <span>
+              Your swap request has been recorded successfully.
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="close-button"
+            onClick={() => setSuccess(false)}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+      )}
     </main>
   )
 }
